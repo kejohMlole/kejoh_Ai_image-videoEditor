@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kejoh AI Image & Video Editor</title>
+    <style>
+        /* Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        /* Font Awesome for icons */
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
+        
+        :root {
+            --primary: #6d28d9;
+            --primary-light: #8b5cf6;
+            --primary-dark: #5b21b6;
+            --secondary: #10b981;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --gray-light: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --border-radius: 14px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            color: var(--dark);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            transform: translateY(0);
+            transition: var(--transition);
+        }
+        
+        .container:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            animation: pulse 8s infinite linear;
+        }
+        
+        .header h2 {
+            font-weight: 600;
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+        }
+        
+        .header h2 i {
+            font-size: 28px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        #upload-section {
+            padding: 30px;
+            text-align: center;
+            border-bottom: 1px solid var(--gray-light);
+            position: relative;
+        }
+        
+        .upload-container {
+            position: relative;
+            display: inline-block;
+            transition: var(--transition);
+        }
+        
+        .upload-container:hover {
+            transform: translateY(-3px);
+        }
+        
+        #file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-dark) 100%);
+            z-index: -1;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .upload-btn:hover::before {
+            opacity: 1;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+        
+        .upload-btn i {
+            font-size: 18px;
+        }
+        
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+        }
+        
+        #chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border-radius: var(--border-radius);
+            background-color: var(--light);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm) inset;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .chat-message {
+            max-width: 80%;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.4s forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            animation-delay: 0.1s;
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            animation-delay: 0.1s;
+        }
+        
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+        
+        .bot-message .message-bubble {
+            background-color: white;
+            color: var(--dark);
+            border-top-left-radius: 4px;
+        }
+        
+        .user-message .message-bubble {
+            background-color: var(--primary);
+            color: white;
+            border-top-right-radius: 4px;
+        }
+        
+        .message-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .bot-message .message-info {
+            color: var(--gray);
+        }
+        
+        .user-message .message-info {
+            justify-content: flex-end;
+            color: var(--primary-light);
+        }
+        
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+            transition: var(--transition);
+        }
+        
+        .bot-avatar {
+            background-color: var(--primary-light);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .user-avatar {
+            background-color: var(--gray-light);
+            color: var(--dark);
+            margin-right: 0;
+            margin-left: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .chat-input-container {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        #chat-input {
+            flex-grow: 1;
+            padding: 15px 20px;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-size: 15px;
+            outline: none;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        #chat-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+        }
+        
+        .send-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0 22px;
+            height: 100%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .send-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-dark) 100%);
+            z-index: 0;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .send-btn:hover::before {
+            opacity: 1;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .send-btn:active {
+            transform: translateY(0);
+        }
+        
+        .send-btn i {
+            font-size: 18px;
+            position: relative;
+        }
+        
+        .action-btn {
+            padding: 14px 20px;
+            border-radius: var(--border-radius);
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .action-btn:active::after {
+            animation: ripple 0.6s ease-out;
+        }
+        
+        .action-btn i {
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        #undo-btn {
+            background-color: white;
+            color: var(--dark);
+            border: 1px solid var(--gray-light);
+        }
+        
+        #undo-btn:hover {
+            background-color: var(--gray-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        #redo-btn {
+            background-color: white;
+            color: var(--dark);
+            border: 1px solid var(--gray-light);
+        }
+        
+        #redo-btn:hover {
+            background-color: var(--gray-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        #download-btn {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        #download-btn:hover {
+            background-color: #0d9c6f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        #result-container {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            background-color: var(--light);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            transition: var(--transition);
+        }
+        
+        #result-container h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        #result-container img, #result-container video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            transform: scale(0.98);
+            opacity: 0;
+            animation: fadeInScale 0.5s forwards 0.2s;
+        }
+        
+        @keyframes fadeInScale {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background-color: var(--gray-light);
+            border-radius: 3px;
+            margin-top: 15px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            width: 0%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Keyframe animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--gray-light);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 8px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .controls {
+                flex-wrap: wrap;
+            }
+            
+            .action-btn {
+                flex: 1 1 100%;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2><i class="fas fa-magic"></i> Kejoh AI Image & Video Editor</h2>
+        </div>
+        
+        <div id="upload-section">
+            <div class="upload-container">
+                <label for="file-input" class="upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i> Upload File
+                </label>
+                <input type="file" id="file-input" accept="image/*,video/*">
+            </div>
+            <div class="progress-container" id="upload-progress">
+                <div class="progress-bar" id="upload-progress-bar"></div>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <div id="chat-container">
+                <div class="chat-message bot-message" style="opacity: 1; transform: translateY(0);">
+                    <div class="message-info">
+                        <div class="avatar bot-avatar">AI</div>
+                        <span>AI Assistant</span>
+                    </div>
+                    <div class="message-bubble">
+                        Hello! Upload an image or video to get started. Type "help" to see what I can do.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Type your command..." autocomplete="off">
+                    <button onclick="sendMessage()" class="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <button id="undo-btn" onclick="undo()" style="display: none;" class="action-btn">
+                    <i class="fas fa-undo"></i> Undo
+                </button>
+                <button id="redo-btn" onclick="redo()" style="display: none;" class="action-btn">
+                    <i class="fas fa-redo"></i> Redo
+                </button>
+                <button id="download-btn" onclick="download()" style="display: none;" class="action-btn">
+                    <i class="fas fa-download"></i> Download
+                </button>
+            </div>
+            
+            <div id="result-container">
+                <h3>Result Preview</h3>
+                <div id="result-content"></div>
+                <div class="progress-container" id="download-progress">
+                    <div class="progress-bar" id="download-progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // YOUR ORIGINAL JAVASCRIPT LOGIC - KEPT INTACT
+        let editHistory = [];
+        let currentStep = -1;
+        let chatContainer = document.getElementById('chat-container');
+        let chatInput = document.getElementById('chat-input');
+        let undoBtn = document.getElementById('undo-btn');
+        let redoBtn = document.getElementById('redo-btn');
+        let downloadBtn = document.getElementById('download-btn');
+        let uploadProgress = document.getElementById('upload-progress');
+        let uploadProgressBar = document.getElementById('upload-progress-bar');
+        let downloadProgress = document.getElementById('download-progress');
+        let downloadProgressBar = document.getElementById('download-progress-bar');
+
+        // File upload and processing - with animation enhancements
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Show upload progress
+            uploadProgress.style.display = 'block';
+            uploadProgressBar.style.width = '0%';
+            
+            // Simulate upload progress (in real app, you'd use actual progress events)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                }
+                uploadProgressBar.style.width = progress + '%';
+            }, 200);
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                uploadProgressBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    uploadProgress.style.display = 'none';
+                    
+                    if (data.success) {
+                        editHistory = [data.filepath];
+                        currentStep = 0;
+                        updateUI();
+                        
+                        // Add success message with animation
+                        const successMessage = addMessage('AI Assistant', 'File uploaded successfully! What would you like to do?', 'bot');
+                        
+                        // Add some suggested commands
+                        setTimeout(() => {
+                            addMessage('AI Assistant', 'Try commands like: "enhance colors", "remove background", or "crop to square"', 'bot');
+                        }, 500);
+                        
+                    } else {
+                        addMessage('AI Assistant', 'Error uploading file: ' + data.error, 'bot');
+                    }
+                }, 300);
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                uploadProgress.style.display = 'none';
+                addMessage('AI Assistant', 'Something went wrong: ' + error.message, 'bot');
+            });
+        });
+        
+        // Send message to AI - with animation enhancements
+        function sendMessage() {
+            const userInput = chatInput.value.trim();
+            if (!userInput) return;
+            
+            addMessage('You', userInput, 'user');
+            
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'chat-message bot-message';
+            typingIndicator.innerHTML = `
+                <div class="message-info">
+                    <div class="avatar bot-avatar">AI</div>
+                    <span>AI Assistant</span>
+                </div>
+                <div class="message-bubble">
+                    <span>Typing</span>
+                    <div class="typing-dots">
+                        <span>.</span><span>.</span><span>.</span>
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(typingIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Process command after a short delay to simulate thinking
+            setTimeout(() => {
+                chatContainer.removeChild(typingIndicator);
+                processCommand(userInput);
+            }, 1000 + Math.random() * 1000);
+            
+            // Clear input
+            chatInput.value = '';
+        }
+        
+        // Process user command - original logic with animation enhancements
+        function processCommand(command) {
+            // Check for greetings
+            if (command.toLowerCase().match(/^(hi|hello|hey|hi there|greetings)$/)) {
+                addMessage('AI Assistant', 'Hello! How can I help you today?', 'bot');
+                return;
+            }
+            
+            // Check for help command
+            if (command.toLowerCase() === 'help' || command.toLowerCase().includes('what can you do')) {
+                fetch('/help')
+                    .then(response => response.json())
+                    .then(data => {
+                        addMessage('AI Assistant', data.message, 'bot');
+                    })
+                    .catch(error => {
+                        addMessage('AI Assistant', 'Something went wrong: ' + error.message, 'bot');
+                    });
+                return;
+            }
+            
+            // Check for undo command
+            if (command.toLowerCase() === 'undo' && currentStep > 0) {
+                fetch('/undo', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentStep -= 1;
+                        updateUI();
+                        addMessage('AI Assistant', data.message, 'bot');
+                    } else {
+                        addMessage('AI Assistant', 'Error: ' + data.error, 'bot');
+                    }
+                })
+                .catch(error => {
+                    addMessage('AI Assistant', 'Something went wrong: ' + error.message, 'bot');
+                });
+                return;
+            }
+            
+            // Check for redo command
+            if (command.toLowerCase() === 'redo' && currentStep < editHistory.length - 1) {
+                fetch('/redo', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentStep += 1;
+                        updateUI();
+                        addMessage('AI Assistant', data.message, 'bot');
+                    } else {
+                        addMessage('AI Assistant', 'Error: ' + data.error, 'bot');
+                    }
+                })
+                .catch(error => {
+                    addMessage('AI Assistant', 'Something went wrong: ' + error.message, 'bot');
+                });
+                return;
+            }
+            
+            // Check for download command
+            if (command.toLowerCase() === 'download' && editHistory.length > 0) {
+                // Show download progress
+                downloadProgress.style.display = 'block';
+                downloadProgressBar.style.width = '0%';
+                
+                // Simulate download progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(progressInterval);
+                        setTimeout(() => {
+                            downloadProgress.style.display = 'none';
+                        }, 500);
+                    }
+                    downloadProgressBar.style.width = progress + '%';
+                }, 200);
+                
+                window.location.href = `/download?path=${editHistory[currentStep]}`;
+                return;
+            }
+            
+            // Check for "change color" command
+            if (command.toLowerCase().startsWith('change color')) {
+                const parts = command.split(' ');
+                if (parts.length < 3) {
+                    addMessage('AI Assistant', 'Please specify the color you want (e.g., change color red)', 'bot');
+                    return;
+                }
+                
+                const color = parts.slice(2).join(' ');
+                const data = {
+                    user_input: command,
+                    action: 'change color',
+                    param1: color,
+                    filepath: editHistory[currentStep]
+                };
+                
+                fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addMessage('AI Assistant', data.message, 'bot');
+                        
+                        if (data.result_path) {
+                            editHistory.push(data.result_path);
+                            currentStep = editHistory.length - 1;
+                            updateUI();
+                        }
+                        
+                        if (data.download_link) {
+                            downloadBtn.onclick = function() {
+                                // Show download animation
+                                downloadProgress.style.display = 'block';
+                                downloadProgressBar.style.width = '0%';
+                                
+                                let progress = 0;
+                                const progressInterval = setInterval(() => {
+                                    progress += Math.random() * 15;
+                                    if (progress >= 100) {
+                                        progress = 100;
+                                        clearInterval(progressInterval);
+                                        setTimeout(() => {
+                                            downloadProgress.style.display = 'none';
+                                        }, 500);
+                                    }
+                                    downloadProgressBar.style.width = progress + '%';
+                                }, 200);
+                                
+                                window.location.href = data.download_link;
+                            };
+                        }
+                    } else {
+                        addMessage('AI Assistant', 'Error: ' + data.error, 'bot');
+                    }
+                })
+                .catch(error => {
+                    addMessage('AI Assistant', 'Something went wrong: ' + error.message, 'bot');
+                });
+                return;
+            }
+            
+            // Check for "crop" command
+            if (command.toLowerCase().startsWith('crop')) {
+                const parts = command.split(' ');
+                if (parts.length < 5) {
+                    addMessage('AI Assistant', 'Please specify the crop parameters (e.g., crop x y width height)', 'bot');
+                    return;
+                }
+
+                const x = parts[1];
+                const y = parts[2];
+                const width = parts[3];
+                const height = parts[4];
+
+                const data = {
+                    user_input: command,
+                    action: 'crop',
+                    param1: x,
+                    param2: y,
+                    param3: width,
+                    param4: height,
+                    filepath: editHistory[currentStep]
+                };
+
+                fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addMessage('AI Assistant', data.message, 'bot');
+
+                        if (data.result_path) {
+                            editHistory.push(data.result_path);
+                            currentStep = editHistory.length - 1;
+                            updateUI();
+                        }
+
+                        if (data.download_link) {
+                            downloadBtn.onclick = function() {
+                                window.location.href = data.download_link;
+                            };
+                        }
+                    } else {
+                        addMessage('AI Assistant', 'Error: ' + data.error, 'bot');
+                    }
+                })
+                .catch(error => {
+                    addMessage('AI Assistant', 'Something went wrong: ' + error.message, 'bot');
+                });
+                return;
+            }
+            
+            // Prepare data for backend
+            const data = {
+                user_input: command, // Send raw user input
+                action: command.split(/\s+/)[0].toLowerCase(),
+                filepath: editHistory[currentStep]
+            };
+            
+            // Add parameters if available
+            const parts = command.split(/\s+/);
+            if (parts.length > 1) {
+                data.param1 = parts[1];
+                if (parts.length > 2) {
+                    data.param2 = parts[2];
+                }
+            }
+            
+            // Send to backend
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addMessage('AI Assistant', data.message, 'bot');
+                    
+                    if (data.result_path) {
+                        editHistory.push(data.result_path);
+                        currentStep = editHistory.length - 1;
+                        updateUI();
+                    }
+                    
+                    if (data.download_link) {
+                        downloadBtn.onclick = function() {
+                            window.location.href = data.download_link;
+                        };
+                    }
+                } else {
+                    addMessage('AI Assistant', 'Error: ' + data.error, 'bot');
+                }
+            })
+            .catch(error => {
+                addMessage('AI Assistant', 'Something went wrong: ' + error.message, 'bot');
+            });
+        }
+        
+        // Undo to previous edit
+        function undo() {
+            if (currentStep > 0) {
+                currentStep -= 1;
+                updateUI();
+                addMessage('AI Assistant', 'Reverted to previous edit.', 'bot');
+            } else {
+                addMessage('AI Assistant', 'No previous edit to revert to.', 'bot');
+            }
+        }
+        
+        // Redo the last undone edit
+        function redo() {
+            if (currentStep < editHistory.length - 1) {
+                currentStep += 1;
+                updateUI();
+                addMessage('AI Assistant', 'Redid the last undone edit.', 'bot');
+            } else {
+                addMessage('AI Assistant', 'No undone edit to redo.', 'bot');
+            }
+        }
+        
+        // Download edited image or video
+        function download() {
+            if (editHistory.length > 0) {
+                // Show download progress animation
+                downloadProgress.style.display = 'block';
+                downloadProgressBar.style.width = '0%';
+                
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(progressInterval);
+                        setTimeout(() => {
+                            downloadProgress.style.display = 'none';
+                        }, 500);
+                    }
+                    downloadProgressBar.style.width = progress + '%';
+                }, 200);
+                
+                window.location.href = `/download?path=${editHistory[currentStep]}`;
+            } else {
+                addMessage('AI Assistant', 'No file to download.', 'bot');
+            }
+        }
+        
+        // Update UI based on current state - with animation enhancements
+        function updateUI() {
+            if (editHistory.length > 0) {
+                const resultPath = editHistory[currentStep];
+                const resultContainer = document.getElementById('result-content');
+                
+                // Check if the file is an image or video
+                if (resultPath.endsWith('.jpg') || resultPath.endsWith('.png') || resultPath.endsWith('.jpeg')) {
+                    resultContainer.innerHTML = `
+                        <img src="/${resultPath}" alt="Result">
+                    `;
+                } else if (resultPath.endsWith('.mp4') || resultPath.endsWith('.mov') || resultPath.endsWith('.avi')) {
+                    resultContainer.innerHTML = `
+                        <video controls autoplay>
+                            <source src="/${resultPath}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    `;
+                } else {
+                    resultContainer.innerHTML = '<p>Unsupported file type.</p>';
+                }
+                
+                // Show buttons if there are edits
+                undoBtn.style.display = currentStep > 0 ? 'flex' : 'none';
+                redoBtn.style.display = currentStep < editHistory.length - 1 ? 'flex' : 'none';
+                downloadBtn.style.display = 'flex';
+            } else {
+                document.getElementById('result-content').innerHTML = '';
+                undoBtn.style.display = 'none';
+                redoBtn.style.display = 'none';
+                downloadBtn.style.display = 'none';
+            }
+        }
+        
+        // Add message to chat - with animation
+        function addMessage(sender, message, type) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `chat-message ${type}-message`;
+            
+            let avatarContent = type === 'bot' ? 'AI' : 'U';
+            let avatarClass = type === 'bot' ? 'bot-avatar' : 'user-avatar';
+            
+            messageElement.innerHTML = `
+                <div class="message-info">
+                    ${type === 'bot' ? 
+                        `<div class="avatar ${avatarClass}">${avatarContent}</div><span>${sender}</span>` : 
+                        `<span>${sender}</span><div class="avatar ${avatarClass}">${avatarContent}</div>`}
+                </div>
+                <div class="message-bubble">${message}</div>
+            `;
+            
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            return messageElement;
+        }
+
+        // Allow sending message with Enter key
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,13 @@
 streamlit
+opencv-python-headless
+numpy
+pillow
+torch
+
 attrs==25.3.0
 blinker==1.9.0
-opencv-python
+
+
 
 
 certifi==2025.1.31
